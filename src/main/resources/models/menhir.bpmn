@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1wurle1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.0.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.0.0">
+  <bpmn:process id="io.menhir.orderProcess" name="Obelix Menhir SARL" isExecutable="true">
+    <bpmn:extensionElements>
+      <zeebe:userTaskForm id="userTaskForm_3sdqmfr">{
+  "components": [
+    {
+      "label": "Menhir commandes",
+      "type": "number",
+      "id": "Field_0detaic",
+      "key": "requestedMenhirCount",
+      "description": "Le nombre de menhirs commandes",
+      "validate": {
+        "required": true,
+        "min": 1,
+        "max": 30000
+      },
+      "disabled": true
+    },
+    {
+      "label": "Menhir tailles",
+      "type": "number",
+      "id": "Field_1oq1qzs",
+      "key": "menhirCount",
+      "description": "Le nombre de menhirs tailles",
+      "validate": {
+        "required": true,
+        "min": 1,
+        "max": 30000
+      },
+      "disabled": true
+    },
+    {
+      "label": "Menhirs livres",
+      "type": "number",
+      "id": "Field_1m90yyk",
+      "key": "deliveredMenhirCount",
+      "description": "Le nombre de menhirs livres",
+      "validate": {
+        "required": true
+      },
+      "disabled": true
+    },
+    {
+      "label": "Somme totale payee",
+      "type": "number",
+      "id": "Field_14y6p79",
+      "key": "field_0jzaxv6",
+      "description": "La somme totale payee apres reception des menhirs",
+      "validate": {
+        "required": true,
+        "min": 1,
+        "max": 1000000
+      }
+    }
+  ],
+  "type": "default",
+  "id": "Form_0auvntr",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.0.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.0.0"
+  },
+  "schemaVersion": 4
+}</zeebe:userTaskForm>
+    </bpmn:extensionElements>
+    <bpmn:sequenceFlow id="Flow_1a12lq3" sourceRef="StartEvent_1" targetRef="Activity_0j4og2k" />
+    <bpmn:sequenceFlow id="Flow_1xo2f29" sourceRef="Activity_0j4og2k" targetRef="Activity_1lg2hie" />
+    <bpmn:serviceTask id="Activity_1lg2hie" name="Tailler les menhirs">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.menhir.sculpt" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="= menhirRequest" target="menhirRequest" />
+          <zeebe:output source="=count(menhirs)" target="menhirCount" />
+          <zeebe:output source="= menhirs" target="menhirs" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1xo2f29</bpmn:incoming>
+      <bpmn:outgoing>Flow_1negv7c</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics>
+        <bpmn:extensionElements>
+          <zeebe:loopCharacteristics inputCollection="=menhirRequests" inputElement="menhirRequest" outputCollection="menhirs" outputElement="=menhir" />
+        </bpmn:extensionElements>
+      </bpmn:multiInstanceLoopCharacteristics>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0j4og2k" name="Calculer le nombre de menhirs">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.menhir.compute" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="= blocksOfRock" target="blocksOfRock" />
+          <zeebe:input source="= orderId" target="orderId" />
+          <zeebe:output source="= count(menhirRequests)" target="menhirRequestCount" />
+          <zeebe:output source="= menhirRequests" target="menhirRequests" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1a12lq3</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xo2f29</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1negv7c" sourceRef="Activity_1lg2hie" targetRef="Activity_0lm41bd" />
+    <bpmn:sequenceFlow id="Flow_1n3h1ko" sourceRef="Activity_0lm41bd" targetRef="Activity_1gyhmwz" />
+    <bpmn:userTask id="Activity_1gyhmwz" name="Ficher la commande">
+      <bpmn:extensionElements>
+        <zeebe:formDefinition formKey="camunda-forms:bpmn:userTaskForm_3sdqmfr" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1n3h1ko</bpmn:incoming>
+      <bpmn:outgoing>Flow_0np9q7o</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_13j0hfq" name="Command livree">
+      <bpmn:incoming>Flow_0np9q7o</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0np9q7o" sourceRef="Activity_1gyhmwz" targetRef="Event_13j0hfq" />
+    <bpmn:startEvent id="StartEvent_1" name="Command recue">
+      <bpmn:extensionElements>
+        <zeebe:ioMapping>
+          <zeebe:output source="= orderId" target="orderId" />
+          <zeebe:output source="= blocksOfRock" target="blocksOfRock" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1a12lq3</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0sn45t6" messageRef="Message_126k7a8" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_0lm41bd" name="Livrer les menhirs">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="io.menhir.deliver" retries="3" />
+        <zeebe:ioMapping>
+          <zeebe:input source="= menhir" target="menhir" />
+          <zeebe:output source="= count(menhirReceipts)" target="deliveredMenhirCount" />
+          <zeebe:output source="= menhirReceipts" target="menhirReceipts" />
+        </zeebe:ioMapping>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1negv7c</bpmn:incoming>
+      <bpmn:outgoing>Flow_1n3h1ko</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics>
+        <bpmn:extensionElements>
+          <zeebe:loopCharacteristics inputCollection="=menhirs" inputElement="menhir" outputCollection="menhirReceipts" outputElement="=menhirReceipt" />
+        </bpmn:extensionElements>
+      </bpmn:multiInstanceLoopCharacteristics>
+    </bpmn:serviceTask>
+    <bpmn:subProcess id="Activity_1494esb" triggeredByEvent="true">
+      <bpmn:endEvent id="Event_04psa6v">
+        <bpmn:incoming>Flow_09nb3zw</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_09nb3zw" sourceRef="Activity_13syt0c" targetRef="Event_04psa6v" />
+      <bpmn:sequenceFlow id="Flow_1xavugu" sourceRef="Event_13nafzo" targetRef="Activity_13syt0c" />
+      <bpmn:serviceTask id="Activity_13syt0c" name="Tabasser quelques Romains">
+        <bpmn:extensionElements>
+          <zeebe:taskDefinition type="io.menhir.tabasser" />
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_1xavugu</bpmn:incoming>
+        <bpmn:outgoing>Flow_09nb3zw</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:startEvent id="Event_13nafzo" name="Attaque des Romains">
+        <bpmn:outgoing>Flow_1xavugu</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_0yihz0r" messageRef="Message_1o47k5s" />
+      </bpmn:startEvent>
+    </bpmn:subProcess>
+  </bpmn:process>
+  <bpmn:message id="Message_126k7a8" name="io.menhir.order">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="= orderId" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmn:message id="Message_1o47k5s" name="io.menhir.attaque">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=&#34;attaqueId&#34;" />
+    </bpmn:extensionElements>
+  </bpmn:message>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="io.menhir.orderProcess">
+      <bpmndi:BPMNEdge id="Flow_0np9q7o_di" bpmnElement="Flow_0np9q7o">
+        <di:waypoint x="860" y="117" />
+        <di:waypoint x="922" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1n3h1ko_di" bpmnElement="Flow_1n3h1ko">
+        <di:waypoint x="710" y="117" />
+        <di:waypoint x="760" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1negv7c_di" bpmnElement="Flow_1negv7c">
+        <di:waypoint x="550" y="117" />
+        <di:waypoint x="610" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xo2f29_di" bpmnElement="Flow_1xo2f29">
+        <di:waypoint x="390" y="117" />
+        <di:waypoint x="450" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1a12lq3_di" bpmnElement="Flow_1a12lq3">
+        <di:waypoint x="221" y="117" />
+        <di:waypoint x="290" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_0weqzog_di" bpmnElement="Activity_1lg2hie">
+        <dc:Bounds x="450" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rd2kjo_di" bpmnElement="Activity_0j4og2k">
+        <dc:Bounds x="290" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_17ry3u4_di" bpmnElement="Activity_1gyhmwz">
+        <dc:Bounds x="760" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13j0hfq_di" bpmnElement="Event_13j0hfq">
+        <dc:Bounds x="922" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="900" y="142" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1xpqubr_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="185" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="163" y="142" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1frr273_di" bpmnElement="Activity_0lm41bd">
+        <dc:Bounds x="610" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_19hxmst_di" bpmnElement="Activity_1494esb" isExpanded="true">
+        <dc:Bounds x="185" y="230" width="350" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1xavugu_di" bpmnElement="Flow_1xavugu">
+        <di:waypoint x="261" y="330" />
+        <di:waypoint x="315" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09nb3zw_di" bpmnElement="Flow_09nb3zw">
+        <di:waypoint x="415" y="330" />
+        <di:waypoint x="467" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_04psa6v_di" bpmnElement="Event_04psa6v">
+        <dc:Bounds x="467" y="312" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ptyz7y_di" bpmnElement="Activity_13syt0c">
+        <dc:Bounds x="315" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ijl584_di" bpmnElement="Event_13nafzo">
+        <dc:Bounds x="225" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="213" y="355" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
