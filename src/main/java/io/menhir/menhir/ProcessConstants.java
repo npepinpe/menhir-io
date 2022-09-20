@@ -1,4 +1,4 @@
-package org.example.camunda.process.solution;
+package io.menhir.menhir;
 
 public class ProcessConstants {
 
