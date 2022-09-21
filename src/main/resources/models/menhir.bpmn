@@ -5,11 +5,11 @@
       <zeebe:userTaskForm id="userTaskForm_3sdqmfr">{
   "components": [
     {
-      "label": "Menhir commandes",
+      "label": "Roche delivree",
       "type": "number",
       "id": "Field_0detaic",
-      "key": "requestedMenhirCount",
-      "description": "Le nombre de menhirs commandes",
+      "key": "blocksOfRock",
+      "description": "Le nombre de bloque de roche delivres",
       "validate": {
         "required": true,
         "min": 1,
@@ -72,15 +72,15 @@
         <zeebe:taskDefinition type="io.menhir.sculpt" retries="3" />
         <zeebe:ioMapping>
           <zeebe:input source="= menhirRequest" target="menhirRequest" />
-          <zeebe:output source="=count(menhirs)" target="menhirCount" />
-          <zeebe:output source="= menhirs" target="menhirs" />
+          <zeebe:output source="=count(flatten(menhirs))" target="menhirCount" />
+          <zeebe:output source="= flatten(menhirs)" target="menhirs" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1xo2f29</bpmn:incoming>
       <bpmn:outgoing>Flow_1negv7c</bpmn:outgoing>
       <bpmn:multiInstanceLoopCharacteristics>
         <bpmn:extensionElements>
-          <zeebe:loopCharacteristics inputCollection="=menhirRequests" inputElement="menhirRequest" outputCollection="menhirs" outputElement="=menhir" />
+          <zeebe:loopCharacteristics inputCollection="=flatten(menhirRequests)" inputElement="menhirRequest" outputCollection="menhirs" outputElement="=menhir" />
         </bpmn:extensionElements>
       </bpmn:multiInstanceLoopCharacteristics>
     </bpmn:serviceTask>
@@ -125,15 +125,15 @@
         <zeebe:taskDefinition type="io.menhir.deliver" retries="3" />
         <zeebe:ioMapping>
           <zeebe:input source="= menhir" target="menhir" />
-          <zeebe:output source="= count(menhirReceipts)" target="deliveredMenhirCount" />
-          <zeebe:output source="= menhirReceipts" target="menhirReceipts" />
+          <zeebe:output source="= count(flatten(menhirReceipts))" target="deliveredMenhirCount" />
+          <zeebe:output source="= flatten(menhirReceipts)" target="menhirReceipts" />
         </zeebe:ioMapping>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1negv7c</bpmn:incoming>
       <bpmn:outgoing>Flow_1n3h1ko</bpmn:outgoing>
       <bpmn:multiInstanceLoopCharacteristics>
         <bpmn:extensionElements>
-          <zeebe:loopCharacteristics inputCollection="=menhirs" inputElement="menhir" outputCollection="menhirReceipts" outputElement="=menhirReceipt" />
+          <zeebe:loopCharacteristics inputCollection="=flatten(menhirs)" inputElement="menhir" outputCollection="menhirReceipts" outputElement="=menhirReceipt" />
         </bpmn:extensionElements>
       </bpmn:multiInstanceLoopCharacteristics>
     </bpmn:serviceTask>

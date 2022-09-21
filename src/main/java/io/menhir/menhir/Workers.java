@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -29,9 +30,12 @@ public class Workers {
   public void compute(final JobClient client, final ActivatedJob job) {
     final var order = job.getVariablesAsType(MenhirOrder.class);
 
-    LOG.info("Computing appropriate number of parallel chiseling requests out of order {} ", order);
+    LOG.info(
+        "Computing appropriate number of parallel chiseling requests based on quality of rock for order {} ",
+        order);
 
-    final var count = order.blocksOfRock() * 100;
+    final var multiplier = RandomUtils.nextInt(5, 50);
+    final var count = order.blocksOfRock() * multiplier;
     final List<MenhirRequest> requests = new ArrayList<>(count);
     for (int i = 0; i < count; i++) {
       requests.add(new MenhirRequest(RandomStringUtils.randomAlphabetic(6)));
@@ -46,12 +50,14 @@ public class Workers {
       fetchVariables = {"menhirRequest"})
   public void sculpt(final JobClient client, final ActivatedJob job) {
     final var request = getVariableAs(job, "menhirRequest", MenhirRequest.class);
-    LOG.debug("Sculpting menhir {}", request);
-    client
-        .newCompleteCommand(job)
-        .variables(Map.of("menhir", new Menhir(request.id())))
-        .send()
-        .join();
+    final var sculptedCount = RandomUtils.nextInt(1, 5);
+    final var menhirs = new ArrayList<>();
+    LOG.debug("Sculpting {} menhir out of block {}", sculptedCount, request);
+    for (int i = 0; i < sculptedCount; i++) {
+      menhirs.add(new Menhir(RandomStringUtils.randomAlphanumeric(6)));
+    }
+
+    client.newCompleteCommand(job).variables(Map.of("menhir", menhirs)).send().join();
   }
 
   @ZeebeWorker(
